@@ -10,5 +10,11 @@ class Appointment extends Model
         'client_name',
         'appointment_date',
         'appointment_time',
+        'user_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
