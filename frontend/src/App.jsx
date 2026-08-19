@@ -1,4 +1,4 @@
-¿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     getAppointments,
     createAppointment,
@@ -46,7 +46,7 @@ function App() {
         } catch (err) {
             console.error(err);
 
-            if (err.response?.status === 422) {
+            if (err.response?.status === 422 || err.response?.status === 401) {
                 setLoginError('Correo o contraseña incorrectos.');
             } else {
                 setLoginError('No se pudo conectar con el servidor.');
@@ -102,119 +102,141 @@ function App() {
         }
     };
 
-    // LOGIN
+    // PANTALLA DE LOGIN (Si no hay usuario autenticado)
     if (!user) {
         return (
             <div
                 style={{
-                    maxWidth: '400px',
-                    margin: '80px auto',
-                    padding: '30px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100vh',
+                    backgroundColor: '#111827',
                     fontFamily: 'Arial, sans-serif'
                 }}
             >
-                <header style={{ textAlign: 'center', marginBottom: '30px' }}>
-                    <h1 style={{ color: '#2c3e50' }}>UserBarber</h1>
-                    <p style={{ color: '#7f8c8d' }}>
-                        Inicia sesión para continuar
-                    </p>
-                </header>
-
-                {loginError && (
-                    <div
-                        style={{
-                            background: '#ffdddd',
-                            color: '#d8000c',
-                            padding: '10px',
-                            marginBottom: '15px',
-                            borderRadius: '5px'
-                        }}
-                    >
-                        {loginError}
-                    </div>
-                )}
-
-                <form
-                    onSubmit={handleLogin}
+                <div
                     style={{
-                        background: '#f8f9fa',
-                        padding: '20px',
-                        borderRadius: '8px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        background: '#1f2937',
+                        padding: '40px',
+                        borderRadius: '12px',
+                        width: '100%',
+                        maxWidth: '400px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                        color: '#fff'
                     }}
                 >
-                    <div style={{ marginBottom: '15px' }}>
-                        <label
+                    <header style={{ textAlign: 'center', marginBottom: '25px' }}>
+                        <h1 style={{ color: '#60a5fa', margin: '0 0 10px 0', fontSize: '28px' }}>UserBarber</h1>
+                        <p style={{ color: '#9ca3af', margin: 0, fontSize: '14px' }}>
+                            Inicia sesión para acceder a la agenda
+                        </p>
+                    </header>
+
+                    {loginError && (
+                        <div
                             style={{
-                                display: 'block',
-                                marginBottom: '5px',
-                                fontWeight: 'bold'
+                                background: '#7f1d1d',
+                                color: '#fca5a5',
+                                padding: '12px',
+                                marginBottom: '20px',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                textAlign: 'center'
                             }}
                         >
-                            Correo electrónico:
-                        </label>
+                            {loginError}
+                        </div>
+                    )}
 
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
+                    <form onSubmit={handleLogin}>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    color: '#d1d5db'
+                                }}
+                            >
+                                Correo electrónico:
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #4b5563',
+                                    background: '#374151',
+                                    color: '#fff',
+                                    boxSizing: 'border-box',
+                                    fontSize: '14px'
+                                }}
+                                placeholder="correo@example.com"
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '25px' }}>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    color: '#d1d5db'
+                                }}
+                            >
+                                Contraseña:
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #4b5563',
+                                    background: '#374151',
+                                    color: '#fff',
+                                    boxSizing: 'border-box',
+                                    fontSize: '14px'
+                                }}
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loginLoading}
                             style={{
+                                background: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                padding: '12px',
                                 width: '100%',
-                                padding: '8px',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="correo@example.com"
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '20px' }}>
-                        <label
-                            style={{
-                                display: 'block',
-                                marginBottom: '5px',
-                                fontWeight: 'bold'
+                                borderRadius: '6px',
+                                fontWeight: 'bold',
+                                fontSize: '15px',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s'
                             }}
                         >
-                            Contraseña:
-                        </label>
-
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                boxSizing: 'border-box'
-                            }}
-                            placeholder="Contraseña"
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loginLoading}
-                        style={{
-                            background: '#3498db',
-                            color: 'white',
-                            border: 'none',
-                            padding: '10px 15px',
-                            width: '100%',
-                            borderRadius: '5px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        {loginLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-                    </button>
-                </form>
+                            {loginLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                        </button>
+                    </form>
+                </div>
             </div>
         );
     }
 
-    // APLICACIÓN DESPUÉS DEL LOGIN
+    // APLICACIÓN DESPUÉS DEL LOGIN (Agenda y Panel)
     return (
         <div
             style={{
@@ -232,12 +254,12 @@ function App() {
             >
                 <h1 style={{ color: '#2c3e50' }}>UserBarber</h1>
 
-                <p style={{ color: '#7f8c8d' }}>
-                    Bienvenido, {user.name}
+                <p style={{ color: '#7f8c8d', margin: '5px 0' }}>
+                    Bienvenido, <strong>{user.name}</strong>
                 </p>
 
-                <p style={{ color: '#7f8c8d' }}>
-                    Rol: {user.role}
+                <p style={{ color: '#7f8c8d', margin: '5px 0 15px 0', textTransform: 'capitalize' }}>
+                    Rol: <strong>{user.role}</strong>
                 </p>
 
                 <button
@@ -248,7 +270,8 @@ function App() {
                         border: 'none',
                         padding: '8px 15px',
                         borderRadius: '5px',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
                     }}
                 >
                     Cerrar sesión

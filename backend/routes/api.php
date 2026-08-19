@@ -1,27 +1,27 @@
 <?php
 
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AppointmentController;
 
-// --- Rutas públicas ---
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
+// Rutas públicas de Autenticación
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// --- Rutas protegidas (requieren token válido) ---
+// Rutas protegidas que requieren Token (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
 
-    Route::apiResource('appointments', AppointmentController::class);
-
-    // --- Solo admin y root pueden gestionar usuarios ---
-    Route::middleware('role:admin,root')->group(function () {
-        Route::apiResource('users', UserController::class)->except(['show']);
-    });
+    // Rutas para la gestión de Citas (Appointments)
+    Route::get('/appointments', [AppointmentController::class, 'index']);
+    Route::post('/appointments', [AppointmentController::class, 'store']);
+    Route::delete('/appointments/{id}', [AppointmentController::class, 'destroy']);
 });
