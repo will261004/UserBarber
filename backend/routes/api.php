@@ -12,11 +12,11 @@ use App\Http\Controllers\AppointmentController;
 */
 
 // Rutas públicas de Autenticación
-Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // Rutas protegidas que requieren Token (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']); // Movida aquí para que solo usuarios autenticados puedan crear cuentas
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 

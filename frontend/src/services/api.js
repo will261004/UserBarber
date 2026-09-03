@@ -99,6 +99,11 @@ export async function createUser(data) {
     return response.data;
 }
 
+// Alias añadido para que coincida exactamente con la importación del formulario de registro
+export async function registerUser(data) {
+    return await createUser(data);
+}
+
 export async function updateUser(id, data) {
     const token = getToken();
 
@@ -120,6 +125,22 @@ export async function deleteUser(id) {
 
     const response = await axios.delete(
         `${API_URL}/users/${id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+    return response.data;
+}
+
+// Función adicional para eliminar citas si la usas en tu panel
+export async function deleteAppointment(id) {
+    const token = getToken();
+
+    const response = await axios.delete(
+        `${API_URL}/appointments/${id}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`,
