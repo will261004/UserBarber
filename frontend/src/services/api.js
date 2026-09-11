@@ -150,3 +150,37 @@ export async function deleteAppointment(id) {
 
     return response.data;
 }
+
+// --- CATEGORÍAS Y SERVICIOS (Catálogo Padre e Hijos) ---
+
+export async function getCategories() {
+    const token = getToken();
+    const response = await axios.get(`${API_URL}/categories`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+}
+
+export async function createCategory(data) {
+    const token = getToken();
+    const response = await axios.post(`${API_URL}/categories`, data, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+}
+
+export async function getServices() {
+    const token = getToken();
+    const response = await axios.get(`${API_URL}/services`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+}
+
+export async function createService(data) {
+    const token = getToken();
+    const response = await axios.post(`${API_URL}/services`, data, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+}

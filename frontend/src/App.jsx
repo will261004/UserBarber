@@ -10,7 +10,8 @@ import {
 import Login from './components/Login';
 import AppointmentForm from './components/AppointmentForm';
 import AppointmentsList from './components/AppointmentsList';
-import RegisterUserForm from './components/RegisterUserForm'; // <-- Importamos el componente de registro
+import RegisterUserForm from './components/RegisterUserForm';
+import ServiceCatalogManager from './components/ServiceCatalogManager'; // <-- 1. Importas el nuevo componente aquí
 import './App.css';
 
 function App() {
@@ -60,9 +61,9 @@ function App() {
         return <Login onLoginSuccess={(userData) => setUser(userData)} />;
     }
 
-    // PANEL PRINCIPAL
+    // PANEL PRINCIPAL (A esto me refería con el JSX del panel principal)
     return (
-        <div style={{ maxWidth: '600px', margin: '40px auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+        <div style={{ maxWidth: '650px', margin: '40px auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
             <header style={{ textAlign: 'center', marginBottom: '30px' }}>
                 <h1 style={{ color: '#2c3e50' }}>UserBarber</h1>
                 <p style={{ color: '#7f8c8d', margin: '5px 0' }}>Bienvenido, <strong>{user.name}</strong></p>
@@ -80,6 +81,9 @@ function App() {
                     {error}
                 </div>
             )}
+
+            {/* 2. Aquí colocas el Gestor de Catálogo de Servicios y Categorías */}
+            <ServiceCatalogManager />
 
             {/* Formulario para registrar nuevas citas */}
             <AppointmentForm onAppointmentCreated={() => loadAppointments()} />

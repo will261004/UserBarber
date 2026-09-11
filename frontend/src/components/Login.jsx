@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { login as apiLogin, registerUser } from '../services/api';
 
 export default function Login({ onLoginSuccess }) {
     const [isRegistering, setIsRegistering] = useState(false);
@@ -15,29 +16,14 @@ export default function Login({ onLoginSuccess }) {
         setSuccessMessage('');
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Error al iniciar sesión');
-            }
-
-            localStorage.setItem('token', data.access_token);
-            localStorage.setItem('role', data.user.role);
-            localStorage.setItem('userName', data.user.name);
-
-            onLoginSuccess();
+            // Usamos la función oficial del api.js que ya maneja correctamente el token y el almacenamiento del usuario
+            const data = await apiLogin(email, password);
+            
+            // onLoginSuccess espera recibir los datos del usuario para actualizar el estado en App.jsx
+            onLoginSuccess(data.user);
 
         } catch (err) {
-            setError(err.message);
+            setError(err.response?.data?.message || err.message || 'Error al iniciar sesión');
         }
     };
 
@@ -46,29 +32,13 @@ export default function Login({ onLoginSuccess }) {
         setError('');
         setSuccessMessage('');
 
-        const token = localStorage.getItem('token');
-
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    password,
-                    password_confirmation: passwordConfirmation
-                })
+            await registerUser({
+                name,
+                email,
+                password,
+                password_confirmation: passwordConfirmation
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Error al registrar el usuario');
-            }
 
             setSuccessMessage('¡Usuario registrado exitosamente!');
             setName('');
@@ -76,14 +46,14 @@ export default function Login({ onLoginSuccess }) {
             setPassword('');
             setPasswordConfirmation('');
             
-            // Regresar al login después de unos segundos o dejarlo listo
+            // Regresar al login después de unos segundos
             setTimeout(() => {
                 setIsRegistering(false);
                 setSuccessMessage('');
             }, 2000);
 
         } catch (err) {
-            setError(err.message);
+            setError(err.response?.data?.message || err.message || 'Error al registrar el usuario');
         }
     };
 
@@ -105,7 +75,7 @@ export default function Login({ onLoginSuccess }) {
                             value={name} 
                             onChange={(e) => setName(e.target.value)} 
                             required 
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff' }}
+                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff', boxSizing: 'border-box' }}
                         />
                     </div>
                 )}
@@ -117,7 +87,7 @@ export default function Login({ onLoginSuccess }) {
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)} 
                         required 
-                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff' }}
+                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff', boxSizing: 'border-box' }}
                     />
                 </div>
 
@@ -126,9 +96,10 @@ export default function Login({ onLoginSuccess }) {
                     <input 
                         type="password" 
                         value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
+                        onChange={(e) => setEmail ? setPassword(e.target.value) : null} // Mantener captura limpia de password
+                        onInput={(e) => setPassword(e.target.value)}
                         required 
-                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff' }}
+                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff', boxSizing: 'border-box' }}
                     />
                 </div>
 
@@ -140,12 +111,12 @@ export default function Login({ onLoginSuccess }) {
                             value={passwordConfirmation} 
                             onChange={(e) => setPasswordConfirmation(e.target.value)} 
                             required 
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff' }}
+                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #4b5563', background: '#374151', color: '#fff', boxSizing: 'border-box' }}
                         />
                     </div>
                 )}
 
-                <button type="submit" style={{ width: '100%', padding: '10px', background: '#3b82f6', color: '#white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '15px' }}>
+                <button type="submit" style={{ width: '100%', padding: '10px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '15px' }}>
                     {isRegistering ? 'Crear Usuario' : 'Entrar'}
                 </button>
 
