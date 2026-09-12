@@ -1,30 +1,24 @@
-import { useState, useEffect } from 'react';
-import { getCategories, createCategory, getServices, createService } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { getCategories, createCategory, getServices, createService, deleteService } from '../services/api';
 
 export default function ServiceCatalogManager() {
     const [categories, setCategories] = useState([]);
     const [services, setServices] = useState([]);
     
-    // Formulario Categoría
+    // Estados para los formularios
     const [categoryName, setCategoryName] = useState('');
-    
-    // Formulario Servicio
-    const [serviceForm, setServiceForm] = useState({
-        category_id: '',
-        name: '',
-        price: '',
-        duration_minutes: ''
-    });
+    const [serviceName, setServiceName] = useState('');
+    const [servicePrice, setServicePrice] = useState('');
+    const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ text: '', type: '' });
 
     const loadData = async () => {
         try {
-            const catData = await getCategories();
-            const servData = await getServices();
-            setCategories(catData);
-            setServices(servData);
+            const [cats, servs] = await Promise.all([getCategories(), getServices()]);
+            setCategories(cats || []);
+            setServices(servs || []);
         } catch (err) {
             console.error(err);
         }
@@ -34,113 +28,181 @@ export default function ServiceCatalogManager() {
         loadData();
     }, []);
 
-    const handleCategorySubmit = async (e) => {
+    const handleCreateCategory = async (e) => {
         e.preventDefault();
+        if (!categoryName.trim()) return;
         try {
             await createCategory({ name: categoryName });
             setCategoryName('');
-            setSuccess('Categoría creada con éxito');
-            setError('');
+            setMessage({ text: 'Categoría creada con éxito', type: 'success' });
             loadData();
         } catch (err) {
             console.error(err);
-            setError('Error al crear la categoría');
-            setSuccess('');
+            setMessage({ text: 'Error al crear la categoría', type: 'error' });
         }
     };
 
-    const handleServiceSubmit = async (e) => {
+    const handleCreateService = async (e) => {
         e.preventDefault();
+        if (!serviceName.trim() || !servicePrice || !selectedCategoryId) return;
         try {
-            await createService(serviceForm);
-            setServiceForm({ category_id: '', name: '', price: '', duration_minutes: '' });
-            setSuccess('Servicio creado con éxito');
-            setError('');
+            await createService({ 
+                name: serviceName, 
+                price: servicePrice, 
+                category_id: selectedCategoryId 
+            });
+            setServiceName('');
+            setServicePrice('');
+            setSelectedCategoryId('');
+            setMessage({ text: 'Servicio creado con éxito', type: 'success' });
             loadData();
         } catch (err) {
             console.error(err);
-            setError('Error al crear el servicio');
-            setSuccess('');
+            setMessage({ text: 'Error al crear el servicio', type: 'error' });
+        }
+    };
+
+    const handleDeleteService = async (id) => {
+        if (!window.confirm('¿Estás seguro de eliminar este servicio?')) return;
+        try {
+            await deleteService(id);
+            setMessage({ text: 'Servicio eliminado', type: 'success' });
+            loadData();
+        } catch (err) {
+            console.error(err);
+            setMessage({ text: 'Error al eliminar', type: 'error' });
         }
     };
 
     return (
-        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', marginBottom: '30px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
-            <h3 style={{ color: '#1e293b', marginTop: 0 }}>Catálogo de Servicios y Categorías</h3>
-            {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
-            {success && <p style={{ color: 'green', fontSize: '14px' }}>{success}</p>}
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '15px' }}>
+        <div style={{ maxWidth: '850px', margin: '0 auto', color: '#f3f4f6', paddingBottom: '30px' }}>
+            
+            {/* Tarjeta Contenedora Principal */}
+            <div style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)' }}>
                 
-                {/* Formulario Categorías */}
-                <form onSubmit={handleCategorySubmit} style={{ background: '#fff', padding: '15px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>Nueva Categoría</h4>
-                    <input
-                        type="text"
-                        placeholder="Ej. Cortes, Barbería, Tintes"
-                        value={categoryName}
-                        onChange={(e) => setCategoryName(e.target.value)}
-                        required
-                        style={{ width: '100%', padding: '8px', marginBottom: '10px', boxSizing: 'border-box' }}
-                    />
-                    <button type="submit" style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                        Guardar Categoría
-                    </button>
-                </form>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#60a5fa', textAlign: 'center', marginBottom: '20px', borderBottom: '1px solid #374151', paddingBottom: '15px' }}>
+                    Catálogo de Servicios y Categorías
+                </h2>
 
-                {/* Formulario Servicios */}
-                <form onSubmit={handleServiceSubmit} style={{ background: '#fff', padding: '15px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>Nuevo Servicio</h4>
-                    <select
-                        value={serviceForm.category_id}
-                        onChange={(e) => setServiceForm({ ...serviceForm, category_id: e.target.value })}
-                        required
-                        style={{ width: '100%', padding: '8px', marginBottom: '10px', boxSizing: 'border-box' }}
-                    >
-                        <option value="">Selecciona una categoría</option>
-                        {categories.map((cat) => (
-                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                    </select>
-                    <input
-                        type="text"
-                        placeholder="Nombre (Ej. Corte Clásico)"
-                        value={serviceForm.name}
-                        onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
-                        required
-                        style={{ width: '100%', padding: '8px', marginBottom: '10px', boxSizing: 'border-box' }}
-                    />
-                    <input
-                        type="number"
-                        step="0.01"
-                        placeholder="Precio ($)"
-                        value={serviceForm.price}
-                        onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })}
-                        required
-                        style={{ width: '100%', padding: '8px', marginBottom: '10px', boxSizing: 'border-box' }}
-                    />
-                    <button type="submit" style={{ background: '#10b981', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                        Guardar Servicio
-                    </button>
-                </form>
-
-            </div>
-
-            {/* Listado rápido de lo registrado */}
-            <div style={{ marginTop: '20px', background: '#fff', padding: '15px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>Servicios Disponibles en el Sistema</h4>
-                {services.length === 0 ? (
-                    <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>No hay servicios registrados aún.</p>
-                ) : (
-                    <ul style={{ paddingLeft: '20px', margin: 0 }}>
-                        {services.map((s) => (
-                            <li key={s.id} style={{ fontSize: '14px', color: '#334155', marginBottom: '5px' }}>
-                                <strong>{s.name}</strong> — ${s.price} 
-                                <span style={{ color: '#64748b', fontSize: '12px' }}> ({s.category?.name || 'Sin categoría'})</span>
-                            </li>
-                        ))}
-                    </ul>
+                {message.text && (
+                    <div style={{ background: message.type === 'success' ? '#065f46' : '#7f1d1d', color: message.type === 'success' ? '#6ee7b7' : '#fca5a5', padding: '10px 14px', borderRadius: '6px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
+                        {message.text}
+                    </div>
                 )}
+
+                {/* Sección Superior: Formularios en 2 Columnas */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                    
+                    {/* Formulario Nueva Categoría */}
+                    <div style={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px', padding: '18px' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#93c5fd', marginBottom: '14px', textAlign: 'center' }}>Nueva Categoría</h3>
+                        <form onSubmit={handleCreateCategory} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Nombre de la Categoría:</label>
+                                <input 
+                                    type="text" 
+                                    value={categoryName} 
+                                    onChange={(e) => setCategoryName(e.target.value)} 
+                                    placeholder="Ej. Cortes, Barbería, Tintes" 
+                                    required 
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #4b5563', background: '#1f2937', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
+                                />
+                            </div>
+                            <button 
+                                type="submit" 
+                                style={{ marginTop: '6px', padding: '10px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', transition: 'background 0.2s' }}
+                            >
+                                Guardar Categoría
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Formulario Nuevo Servicio */}
+                    <div style={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px', padding: '18px' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#93c5fd', marginBottom: '14px', textAlign: 'center' }}>Nuevo Servicio</h3>
+                        <form onSubmit={handleCreateService} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Categoría:</label>
+                                <select 
+                                    value={selectedCategoryId} 
+                                    onChange={(e) => setSelectedCategoryId(e.target.value)} 
+                                    required 
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #4b5563', background: '#1f2937', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
+                                >
+                                    <option value="">Selecciona una categoría</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Nombre del Servicio:</label>
+                                <input 
+                                    type="text" 
+                                    value={serviceName} 
+                                    onChange={(e) => setServiceName(e.target.value)} 
+                                    placeholder="Ej. Corte Clásico" 
+                                    required 
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #4b5563', background: '#1f2937', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Precio ($):</label>
+                                <input 
+                                    type="number" 
+                                    step="0.01" 
+                                    value={servicePrice} 
+                                    onChange={(e) => setServicePrice(e.target.value)} 
+                                    placeholder="0.00" 
+                                    required 
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #4b5563', background: '#1f2937', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
+                                />
+                            </div>
+
+                            <button 
+                                type="submit" 
+                                style={{ marginTop: '2px', padding: '10px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', transition: 'background 0.2s' }}
+                            >
+                                Guardar Servicio
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+                {/* Sección Inferior: Listado de Servicios Disponibles */}
+                <div style={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px', padding: '18px' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#93c5fd', marginBottom: '14px', textAlign: 'center' }}>Servicios Disponibles en el Sistema</h3>
+                    
+                    {services.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.9rem', margin: '20px 0' }}>No hay servicios registrados aún.</p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {services.map((service) => (
+                                <div 
+                                    key={service.id} 
+                                    style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '6px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                >
+                                    <div>
+                                        <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: '#fff' }}>{service.name}</h4>
+                                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#9ca3af' }}>
+                                            Precio: <strong style={{ color: '#34d399' }}>${service.price}</strong>
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleDeleteService(service.id)}
+                                        style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
             </div>
         </div>
     );

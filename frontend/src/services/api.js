@@ -184,3 +184,11 @@ export async function createService(data) {
     });
     return response.data;
 }
+
+export async function deleteService(id) {
+    const token = getToken();
+    const response = await axios.delete(`${API_URL}/services/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+}
