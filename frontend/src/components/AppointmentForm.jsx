@@ -1,104 +1,83 @@
-// src/components/AppointmentForm.jsx
 import React, { useState } from 'react';
-import { createAppointment } from '../services/appointmentService';
+import { createAppointment } from '../services/api';
 
 export default function AppointmentForm({ onAppointmentCreated }) {
-  const [clientName, setClientName] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState('');
+    const [clientName, setClientName] = useState('');
+    const [date, setDate] = useState('');
+    const [time, setTime] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccessMessage('');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        setSuccess(false);
 
-    try {
-      // Llamada al servicio que hace el POST hacia la API de Laravel
-      await createAppointment({
-        client_name: clientName,
-        date: date,
-        time: time
-      });
+        try {
+            await createAppointment({ client_name: clientName, date, time });
+            setClientName('');
+            setDate('');
+            setTime('');
+            setSuccess(true);
+            if (onAppointmentCreated) onAppointmentCreated();
+        } catch (err) {
+            console.error(err);
+            setError('Error al registrar la cita. Verifique los datos.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      setSuccessMessage('¡Cita guardada exitosamente en MySQL!');
-      setClientName('');
-      setDate('');
-      setTime('');
+    return (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '450px', margin: '0 auto' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#60a5fa', marginBottom: '4px', textAlign: 'center' }}>Registrar Nueva Cita</h3>
 
-      // Si pasamos una función para recargar la lista, la ejecutamos
-      if (onAppointmentCreated) {
-        onAppointmentCreated();
-      }
-    } catch (err) {
-      setError(err.message || 'Error al guardar el registro');
-    } finally {
-      setLoading(false);
-    }
-  };
+            {error && <div style={{ background: '#7f1d1d', color: '#fca5a5', padding: '10px', borderRadius: '6px', fontSize: '0.9rem' }}>{error}</div>}
+            {success && <div style={{ background: '#065f46', color: '#6ee7b7', padding: '10px', borderRadius: '6px', fontSize: '0.9rem' }}>¡Cita registrada con éxito!</div>}
 
-  return (
-    <div className="w-full max-w-xl mx-auto bg-zinc-900 border border-amber-500/30 rounded-xl p-6 shadow-xl mb-6">
-      <h2 className="text-xl font-bold text-amber-400 mb-4 text-center">Registrar Nueva Cita</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.9rem', fontWeight: '500', color: '#d1d5db' }}>Nombre del Cliente:</label>
+                <input 
+                    type="text" 
+                    value={clientName} 
+                    onChange={(e) => setClientName(e.target.value)} 
+                    placeholder="Ej. Juan Pérez" 
+                    required 
+                    style={{ padding: '10px 14px', borderRadius: '6px', border: '1px solid #4b5563', background: '#111827', color: '#fff', fontSize: '0.95rem', outline: 'none' }}
+                />
+            </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-950/30 border border-red-500/30 text-red-400 rounded-lg text-sm text-center">
-          {error}
-        </div>
-      )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.9rem', fontWeight: '500', color: '#d1d5db' }}>Día de la Cita:</label>
+                <input 
+                    type="date" 
+                    value={date} 
+                    onChange={(e) => setDate(e.target.value)} 
+                    required 
+                    style={{ padding: '10px 14px', borderRadius: '6px', border: '1px solid #4b5563', background: '#111827', color: '#fff', fontSize: '0.95rem', outline: 'none' }}
+                />
+            </div>
 
-      {successMessage && (
-        <div className="mb-4 p-3 bg-emerald-950/30 border border-emerald-500/30 text-emerald-400 rounded-lg text-sm text-center">
-          {successMessage}
-        </div>
-      )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.9rem', fontWeight: '500', color: '#d1d5db' }}>Hora de la Cita:</label>
+                <input 
+                    type="time" 
+                    value={time} 
+                    onChange={(e) => setTime(e.target.value)} 
+                    required 
+                    style={{ padding: '10px 14px', borderRadius: '6px', border: '1px solid #4b5563', background: '#111827', color: '#fff', fontSize: '0.95rem', outline: 'none' }}
+                />
+            </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm text-zinc-300 mb-1">Nombre del Cliente:</label>
-          <input
-            type="text"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            required
-            placeholder="Ej. Juan Pérez"
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm text-zinc-300 mb-1">Día de la Cita:</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm text-zinc-300 mb-1">Hora de la Cita:</label>
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-        >
-          {loading ? 'Guardando en base de datos...' : 'Guardar Cita'}
-        </button>
-      </form>
-    </div>
-  );
+            <button 
+                type="submit" 
+                disabled={loading}
+                style={{ marginTop: '8px', padding: '11px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', transition: 'background 0.2s' }}
+            >
+                {loading ? 'Guardando...' : 'Guardar Cita'}
+            </button>
+        </form>
+    );
 }
