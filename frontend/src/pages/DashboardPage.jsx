@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAppointments, createAppointment, deleteAppointment, getToken } from '../services/api';
+import { getAppointments, deleteAppointment, getToken } from '../services/api';
 import AppointmentForm from '../components/AppointmentForm';
 import AppointmentsList from '../components/AppointmentsList';
 import RegisterUserForm from '../components/RegisterUserForm';
@@ -46,10 +46,10 @@ export default function DashboardPage({ user }) {
                 </div>
             )}
 
-            {/* Contenedores en Grid o Tarjetas ordenadas */}
+            {/* Contenedores organizados en tarjetas */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
                 
-                {/* Tarjeta de Nueva Cita */}
+                {/* Tarjeta de Registrar Cita */}
                 <div style={{ background: '#1f2937', padding: '20px', borderRadius: '12px', border: '1px solid #374151', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                     <AppointmentForm onAppointmentCreated={() => loadAppointments()} />
                 </div>
@@ -59,7 +59,7 @@ export default function DashboardPage({ user }) {
                     <RegisterUserForm />
                 </div>
 
-                {/* Tarjeta de Listado de Citas */}
+                {/* Tarjeta de Citas Programadas */}
                 <div style={{ background: '#1f2937', padding: '20px', borderRadius: '12px', border: '1px solid #374151', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                     <AppointmentsList appointments={appointments} onDelete={handleDeleteAppointment} />
                 </div>
