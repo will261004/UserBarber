@@ -14,12 +14,12 @@ use App\Http\Controllers\UserController;
 
 // Rutas públicas de Autenticación
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
 // Rutas protegidas que requieren Token (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']); // Movida aquí para que solo usuarios autenticados puedan crear cuentas
+
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']);
 
     // Rutas para la gestión de Citas (Appointments)
     Route::get('/appointments', [AppointmentController::class, 'index']);

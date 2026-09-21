@@ -101,20 +101,9 @@ export async function createUser(data) {
 
 // Alias añadido para que coincida exactamente con la importación del formulario de registro
 export async function registerUser(data) {
-    return await createUser(data);
-}
-
-export async function updateUser(id, data) {
-    const token = getToken();
-
-    const response = await axios.put(
-        `${API_URL}/users/${id}`,
-        data,
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }
+    const response = await axios.post(
+        `${API_URL}/register`,
+        data
     );
 
     return response.data;
